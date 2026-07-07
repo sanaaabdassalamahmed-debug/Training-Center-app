@@ -1,4 +1,5 @@
-from pathlib import Path
+from pathlib import Path 
+import os 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -89,7 +90,8 @@ USE_TZ = True
 
 # Static files
 STATIC_URL = 'static/'
-
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # CORS
 CORS_ALLOW_ALL_ORIGINS = True

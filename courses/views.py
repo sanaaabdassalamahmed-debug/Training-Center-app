@@ -1,12 +1,20 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+
+from django.contrib.auth.models import User
+from django.contrib.auth import authenticate
+
+from rest_framework_simplejwt.tokens import RefreshToken
+
 from .models import Course, Trainer, Student, Enrollment
+
 from .serializers import (
     CourseSerializer,
     TrainerSerializer,
     StudentSerializer,
     EnrollmentSerializer
 )
+
 
 # ================= COURSES =================
 
@@ -28,11 +36,17 @@ def courses(request):
         return Response(serializer.errors)
 
 
+
 @api_view(['DELETE'])
 def delete_course(request, id):
+
     course = Course.objects.get(id=id)
     course.delete()
-    return Response({"message": "Deleted"})
+
+    return Response({
+        "message": "Deleted"
+    })
+
 
 
 # ================= STUDENTS =================
@@ -41,11 +55,15 @@ def delete_course(request, id):
 def students(request):
 
     if request.method == 'GET':
+
         data = Student.objects.all()
         serializer = StudentSerializer(data, many=True)
+
         return Response(serializer.data)
 
+
     elif request.method == 'POST':
+
         serializer = StudentSerializer(data=request.data)
 
         if serializer.is_valid():
@@ -55,11 +73,17 @@ def students(request):
         return Response(serializer.errors)
 
 
+
 @api_view(['DELETE'])
 def delete_student(request, id):
+
     student = Student.objects.get(id=id)
     student.delete()
-    return Response({"message": "Deleted"})
+
+    return Response({
+        "message": "Deleted"
+    })
+
 
 
 # ================= TRAINERS =================
@@ -68,11 +92,15 @@ def delete_student(request, id):
 def trainers(request):
 
     if request.method == 'GET':
+
         data = Trainer.objects.all()
         serializer = TrainerSerializer(data, many=True)
+
         return Response(serializer.data)
 
+
     elif request.method == 'POST':
+
         serializer = TrainerSerializer(data=request.data)
 
         if serializer.is_valid():
@@ -82,11 +110,17 @@ def trainers(request):
         return Response(serializer.errors)
 
 
+
 @api_view(['DELETE'])
 def delete_trainer(request, id):
+
     trainer = Trainer.objects.get(id=id)
     trainer.delete()
-    return Response({"message": "Deleted"})
+
+    return Response({
+        "message": "Deleted"
+    })
+
 
 
 # ================= ENROLL =================
@@ -94,12 +128,87 @@ def delete_trainer(request, id):
 @api_view(['POST'])
 def enroll_student(request):
 
-    student = Student.objects.get(id=request.data['student_id'])
-    course = Course.objects.get(id=request.data['course_id'])
+    student = Student.objects.get(
+        id=request.data['student_id']
+    )
+
+    course = Course.objects.get(
+        id=request.data['course_id']
+    )
+
 
     enrollment = Enrollment.objects.create(
         student=student,
         course=course
     )
 
-    return Response(EnrollmentSerializer(enrollment).data)
+
+    return Response(
+        EnrollmentSerializer(enrollment).data
+    )
+
+
+
+# ================= REGISTER =================
+
+@api_view(['POST'])
+def register(request):
+
+    username = request.data.get("username")
+    password = request.data.get("password")
+
+
+    if User.objects.filter(username=username).exists():
+
+        return Response({
+            "message": "User already exists"
+        })
+
+
+    user = User.objects.create_user(
+        username=username,
+        password=password
+    )
+
+
+    return Response({
+        "message": "Account Created Successfully",
+        "username": user.username
+    })
+
+
+
+# ================= LOGIN =================
+
+@api_view(['POST'])
+def login(request):
+
+    username = request.data.get("username")
+    password = request.data.get("password")
+
+
+    user = authenticate(
+        username=username,
+        password=password
+    )
+
+
+    if user:
+
+        refresh = RefreshToken.for_user(user)
+
+
+        return Response({
+
+            "message": "Login Success",
+
+            "token": str(refresh.access_token)
+
+        })
+
+
+    return Response({
+
+        "message": "Invalid Username or Password"
+
+    })

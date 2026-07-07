@@ -17,4 +17,8 @@ urlpatterns = [
 
     # ENROLL
     path('enroll/', enroll_student),
+
+    # AUTH
+    path('register/', register),
+    path('login/', login),
 ]
